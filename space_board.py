@@ -124,31 +124,31 @@ class Space(object):
                             not self.is_obstacle(row, column):
                         self.goal_coordinates = [Space.grid_square_width * column,
                                                  Space.grid_square_height * row]
-            if index_bfs_path < len(path_best_first_search):
+            if index_bfs_path < len(path_bfs):
                 self.visited[self.ship_coordinates[1] //
                                 Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width] = True
                 current_col = self.ship_coordinates[0] // Space.grid_square_width
                 current_row = self.ship_coordinates[1] // Space.grid_square_height
-                if path_best_first_search[index_bfs_path] == 'L':
+                if path_bfs[index_bfs_path] == 'L':
                     if self.ship_coordinates[0] - Space.grid_square_width >= 0\
                             and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] - Space.grid_square_width) // Space.grid_square_width]:
                         self.direction_path[current_row][current_col][3] = True
                         self.direction_path[current_row][current_col - 1][1] = True
                         self.ship_coordinates[0] -= Space.grid_square_width
-                elif path_best_first_search[index_bfs_path] == 'U':
+                elif path_bfs[index_bfs_path] == 'U':
                     if self.ship_coordinates[1] - Space.grid_square_height >= 0\
                             and not self.grid[(self.ship_coordinates[1] - Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
                         self.direction_path[current_row][current_col][0] = True
                         self.direction_path[current_row -
                                             1][current_col][2] = True
                         self.ship_coordinates[1] -= Space.grid_square_height
-                elif path_best_first_search[index_bfs_path] == 'R':
+                elif path_bfs[index_bfs_path] == 'R':
                     if self.ship_coordinates[0] + Space.grid_square_width < self.grid_size * Space.grid_square_width\
                             and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] + Space.grid_square_width) // Space.grid_square_width]:
                         self.direction_path[current_row][current_col][1] = True
                         self.direction_path[current_row][current_col + 1][3] = True
                         self.ship_coordinates[0] += Space.grid_square_width
-                elif path_best_first_search[index_bfs_path] == 'D':
+                elif path_bfs[index_bfs_path] == 'D':
                     if self.ship_coordinates[1] + Space.grid_square_height < self.grid_size * Space.grid_square_height\
                             and not self.grid[(self.ship_coordinates[1] + Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
                         self.direction_path[current_row][current_col][2] = True
@@ -221,7 +221,7 @@ class Space(object):
                 
             if self.ship_coordinates and self.ship_coordinates != self.goal_coordinates:
                 screen.blit(self.ship, self.ship_coordinates)
-            clock.tick(30)
+            clock.tick(60)
             pygame.display.flip()
             if self.ship_coordinates and self.goal_coordinates and not finished:
                 my_search = Search(
@@ -238,7 +238,7 @@ class Space(object):
 
 
 def main():
-    MySpace = Space(15)
+    MySpace = Space(10)
     MySpace.run()
     
         
