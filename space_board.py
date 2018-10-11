@@ -2,6 +2,9 @@
 from random import randrange, seed
 import pygame
 from pygame.locals import *
+
+from search_methods import Search
+
 class Space(object):
     grid_square_width = 50
     grid_square_height = 50
@@ -16,6 +19,8 @@ class Space(object):
     path_vertical = pygame.image.load('./sprites/laserBlue12.png')
     path_vertical = pygame.transform.scale(path_vertical, (grid_square_width // 10, grid_square_height // 2))
     path_horizontal = pygame.transform.rotate(path_vertical, 90.0)
+    neon_cyan = (178, 255, 255)
+    line_width = 3
     
 
     def __init__(self, grid_size, width=30, height=30):
@@ -67,6 +72,10 @@ class Space(object):
         clock = pygame.time.Clock()
         show_image = True
         angle = 0.1
+        finished = False
+        index_bfs_path = 0
+        path_best_first_search = []
+        path_bfs = []
 
         while not done:
             for event in pygame.event.get():
@@ -78,13 +87,11 @@ class Space(object):
                     current_col = self.ship_coordinates[0] // Space.grid_square_width
                     current_row = self.ship_coordinates[1] // Space.grid_square_height
                     if event.key == K_LEFT:
-                        # me muevo a la izquierda
                         if self.ship_coordinates[0] - Space.grid_square_width >= 0\
                             and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] - Space.grid_square_width) // Space.grid_square_width]: 
                             self.direction_path[current_row][current_col][3] = True
                             self.direction_path[current_row][current_col - 1][1] = True
                             self.ship_coordinates[0] -= Space.grid_square_width
-                            
                     elif event.key == K_UP:
                         if self.ship_coordinates[1] - Space.grid_square_height >= 0\
                                 and not self.grid[(self.ship_coordinates[1] - Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
@@ -92,7 +99,6 @@ class Space(object):
                             self.direction_path[current_row - 1][current_col][2] = True
                             self.ship_coordinates[1] -= Space.grid_square_height 
                     elif event.key == K_RIGHT:
-                        # self.ship = pygame.transform.rotate(self.ship, -90.0)
                         if self.ship_coordinates[0] + Space.grid_square_width < self.grid_size * Space.grid_square_width\
                                 and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] + Space.grid_square_width) // Space.grid_square_width]:
                             self.direction_path[current_row][current_col][1] = True
@@ -115,6 +121,38 @@ class Space(object):
                             not self.is_obstacle(row, column):
                         self.goal_coordinates = [Space.grid_square_width * column,
                                                  Space.grid_square_height * row]
+            # if index_bfs_path < len(path_bfs):
+            #     self.visited[self.ship_coordinates[1] //
+            #                     Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width] = True
+            #     current_col = self.ship_coordinates[0] // Space.grid_square_width
+            #     current_row = self.ship_coordinates[1] // Space.grid_square_height
+            #     if path_bfs[index_bfs_path] == 'L':
+            #         if self.ship_coordinates[0] - Space.grid_square_width >= 0\
+            #                 and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] - Space.grid_square_width) // Space.grid_square_width]:
+            #             self.direction_path[current_row][current_col][3] = True
+            #             self.direction_path[current_row][current_col - 1][1] = True
+            #             self.ship_coordinates[0] -= Space.grid_square_width
+            #     elif path_bfs[index_bfs_path] == 'U':
+            #         if self.ship_coordinates[1] - Space.grid_square_height >= 0\
+            #                 and not self.grid[(self.ship_coordinates[1] - Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
+            #             self.direction_path[current_row][current_col][0] = True
+            #             self.direction_path[current_row -
+            #                                 1][current_col][2] = True
+            #             self.ship_coordinates[1] -= Space.grid_square_height
+            #     elif path_bfs[index_bfs_path] == 'R':
+            #         if self.ship_coordinates[0] + Space.grid_square_width < self.grid_size * Space.grid_square_width\
+            #                 and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] + Space.grid_square_width) // Space.grid_square_width]:
+            #             self.direction_path[current_row][current_col][1] = True
+            #             self.direction_path[current_row][current_col + 1][3] = True
+            #             self.ship_coordinates[0] += Space.grid_square_width
+            #     elif path_bfs[index_bfs_path] == 'D':
+            #         if self.ship_coordinates[1] + Space.grid_square_height < self.grid_size * Space.grid_square_height\
+            #                 and not self.grid[(self.ship_coordinates[1] + Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
+            #             self.direction_path[current_row][current_col][2] = True
+            #             self.direction_path[current_row +
+            #                                 1][current_col][0] = True
+            #             self.ship_coordinates[1] += Space.grid_square_height
+            #     index_bfs_path += 1
             for row in range(self.grid_size):
                 for column in range(self.grid_size):
                     screen.blit(Space.background, (Space.grid_square_width * column,\
@@ -124,17 +162,20 @@ class Space(object):
                                     Space.grid_square_height * row))
                     semipaths = self.direction_path[row][column]
                     if semipaths[0]:
-                        screen.blit(Space.path_vertical, (Space.grid_square_width * column + Space.grid_square_width // 2,
-                                                            Space.grid_square_height * row))
+                    	pygame.draw.line(screen, Space.neon_cyan, (Space.grid_square_width * column + Space.grid_square_width // 2,
+                                                            Space.grid_square_height * row), (Space.grid_square_width * column + Space.grid_square_width // 2,
+                                                            Space.grid_square_height * row + Space.grid_square_height // 2), Space.line_width)
                     if semipaths[1]:
-                        screen.blit(Space.path_horizontal, (Space.grid_square_width * column + Space.grid_square_width // 2,
-                                                            Space.grid_square_height * row + Space.grid_square_height // 2))
+                    	pygame.draw.line(screen, Space.neon_cyan, (Space.grid_square_width * column + Space.grid_square_width // 2, Space.grid_square_height * row + Space.grid_square_height // 2),\
+                    	(Space.grid_square_width * column + Space.grid_square_width, Space.grid_square_height * row + Space.grid_square_height // 2), Space.line_width)
                     if semipaths[2]:
-                        screen.blit(Space.path_vertical, (Space.grid_square_width * column + Space.grid_square_width // 2,
-                                                            Space.grid_square_height * row + Space.grid_square_height // 2))
+                    	pygame.draw.line(screen, Space.neon_cyan, (Space.grid_square_width * column + Space.grid_square_width // 2,
+                                                            Space.grid_square_height * row + Space.grid_square_height // 2), (Space.grid_square_width * column + Space.grid_square_width // 2,
+                                                            Space.grid_square_height * row + Space.grid_square_height), Space.line_width)
                     if semipaths[3]:
-                        screen.blit(Space.path_horizontal, (Space.grid_square_width * column,
-                                                            Space.grid_square_height * row + Space.grid_square_height // 2))
+                    	pygame.draw.line(screen, Space.neon_cyan, (Space.grid_square_width * column,
+                                                            Space.grid_square_height * row + Space.grid_square_height // 2), (Space.grid_square_width * column + Space.grid_square_width // 2,
+                                                            Space.grid_square_height * row + Space.grid_square_height // 2), Space.line_width)
             if self.goal_coordinates:
                 if self.goal_coordinates == self.ship_coordinates:
                     self.star_goal = pygame.transform.rotate(self.star_goal, 90)
@@ -144,12 +185,23 @@ class Space(object):
                 screen.blit(self.ship, self.ship_coordinates)
             clock.tick(30)
             pygame.display.flip()
+            if self.ship_coordinates and self.goal_coordinates and not finished:
+                my_search = Search(
+                    self.grid_size, self.grid, [self.ship_coordinates[1] // Space.grid_square_height, self.ship_coordinates[0] // Space.grid_square_width], [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
+                path_bfs = my_search.bfs()
+                print(path_bfs)
+                print(my_search.get_path())
+                path_best_first_search = my_search.first_the_best()
+                print(my_search.get_path())
+                finished = True
         pygame.quit()
 
 
 def main():
     MySpace = Space(15)
     MySpace.run()
+    
+        
 
 if __name__ == '__main__':
     main()
