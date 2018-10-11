@@ -1,5 +1,6 @@
 # encoding: utf-8
 from random import randrange, seed
+import time
 import pygame
 from pygame.locals import *
 
@@ -76,6 +77,8 @@ class Space(object):
         index_bfs_path = 0
         path_best_first_search = []
         path_bfs = []
+        shorthest_path_bfs = []
+        idx_shorthest_path_bfs = 0
 
         while not done:
             for event in pygame.event.get():
@@ -121,38 +124,73 @@ class Space(object):
                             not self.is_obstacle(row, column):
                         self.goal_coordinates = [Space.grid_square_width * column,
                                                  Space.grid_square_height * row]
-            # if index_bfs_path < len(path_bfs):
-            #     self.visited[self.ship_coordinates[1] //
-            #                     Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width] = True
-            #     current_col = self.ship_coordinates[0] // Space.grid_square_width
-            #     current_row = self.ship_coordinates[1] // Space.grid_square_height
-            #     if path_bfs[index_bfs_path] == 'L':
-            #         if self.ship_coordinates[0] - Space.grid_square_width >= 0\
-            #                 and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] - Space.grid_square_width) // Space.grid_square_width]:
-            #             self.direction_path[current_row][current_col][3] = True
-            #             self.direction_path[current_row][current_col - 1][1] = True
-            #             self.ship_coordinates[0] -= Space.grid_square_width
-            #     elif path_bfs[index_bfs_path] == 'U':
-            #         if self.ship_coordinates[1] - Space.grid_square_height >= 0\
-            #                 and not self.grid[(self.ship_coordinates[1] - Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
-            #             self.direction_path[current_row][current_col][0] = True
-            #             self.direction_path[current_row -
-            #                                 1][current_col][2] = True
-            #             self.ship_coordinates[1] -= Space.grid_square_height
-            #     elif path_bfs[index_bfs_path] == 'R':
-            #         if self.ship_coordinates[0] + Space.grid_square_width < self.grid_size * Space.grid_square_width\
-            #                 and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] + Space.grid_square_width) // Space.grid_square_width]:
-            #             self.direction_path[current_row][current_col][1] = True
-            #             self.direction_path[current_row][current_col + 1][3] = True
-            #             self.ship_coordinates[0] += Space.grid_square_width
-            #     elif path_bfs[index_bfs_path] == 'D':
-            #         if self.ship_coordinates[1] + Space.grid_square_height < self.grid_size * Space.grid_square_height\
-            #                 and not self.grid[(self.ship_coordinates[1] + Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
-            #             self.direction_path[current_row][current_col][2] = True
-            #             self.direction_path[current_row +
-            #                                 1][current_col][0] = True
-            #             self.ship_coordinates[1] += Space.grid_square_height
-            #     index_bfs_path += 1
+            if index_bfs_path < len(path_best_first_search):
+                self.visited[self.ship_coordinates[1] //
+                                Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width] = True
+                current_col = self.ship_coordinates[0] // Space.grid_square_width
+                current_row = self.ship_coordinates[1] // Space.grid_square_height
+                if path_best_first_search[index_bfs_path] == 'L':
+                    if self.ship_coordinates[0] - Space.grid_square_width >= 0\
+                            and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] - Space.grid_square_width) // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][3] = True
+                        self.direction_path[current_row][current_col - 1][1] = True
+                        self.ship_coordinates[0] -= Space.grid_square_width
+                elif path_best_first_search[index_bfs_path] == 'U':
+                    if self.ship_coordinates[1] - Space.grid_square_height >= 0\
+                            and not self.grid[(self.ship_coordinates[1] - Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][0] = True
+                        self.direction_path[current_row -
+                                            1][current_col][2] = True
+                        self.ship_coordinates[1] -= Space.grid_square_height
+                elif path_best_first_search[index_bfs_path] == 'R':
+                    if self.ship_coordinates[0] + Space.grid_square_width < self.grid_size * Space.grid_square_width\
+                            and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] + Space.grid_square_width) // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][1] = True
+                        self.direction_path[current_row][current_col + 1][3] = True
+                        self.ship_coordinates[0] += Space.grid_square_width
+                elif path_best_first_search[index_bfs_path] == 'D':
+                    if self.ship_coordinates[1] + Space.grid_square_height < self.grid_size * Space.grid_square_height\
+                            and not self.grid[(self.ship_coordinates[1] + Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][2] = True
+                        self.direction_path[current_row +
+                                            1][current_col][0] = True
+                        self.ship_coordinates[1] += Space.grid_square_height
+                index_bfs_path += 1
+            elif idx_shorthest_path_bfs < len(shorthest_path_bfs):
+                time.sleep(0.5)
+                self.visited[self.ship_coordinates[1] //
+                                Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width] = True
+                current_col = self.ship_coordinates[0] // Space.grid_square_width
+                current_row = self.ship_coordinates[1] // Space.grid_square_height
+                if shorthest_path_bfs[idx_shorthest_path_bfs] == 'L':
+                    if self.ship_coordinates[0] - Space.grid_square_width >= 0\
+                            and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] - Space.grid_square_width) // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][3] = True
+                        self.direction_path[current_row][current_col - 1][1] = True
+                        self.ship_coordinates[0] -= Space.grid_square_width
+                elif shorthest_path_bfs[idx_shorthest_path_bfs] == 'U':
+                    if self.ship_coordinates[1] - Space.grid_square_height >= 0\
+                            and not self.grid[(self.ship_coordinates[1] - Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][0] = True
+                        self.direction_path[current_row -
+                                            1][current_col][2] = True
+                        self.ship_coordinates[1] -= Space.grid_square_height
+                elif shorthest_path_bfs[idx_shorthest_path_bfs] == 'R':
+                    if self.ship_coordinates[0] + Space.grid_square_width < self.grid_size * Space.grid_square_width\
+                            and not self.grid[self.ship_coordinates[1] // Space.grid_square_height][(self.ship_coordinates[0] + Space.grid_square_width) // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][1] = True
+                        self.direction_path[current_row][current_col + 1][3] = True
+                        self.ship_coordinates[0] += Space.grid_square_width
+                elif shorthest_path_bfs[idx_shorthest_path_bfs] == 'D':
+                    if self.ship_coordinates[1] + Space.grid_square_height < self.grid_size * Space.grid_square_height\
+                            and not self.grid[(self.ship_coordinates[1] + Space.grid_square_height) // Space.grid_square_height][self.ship_coordinates[0] // Space.grid_square_width]:
+                        self.direction_path[current_row][current_col][2] = True
+                        self.direction_path[current_row +
+                                            1][current_col][0] = True
+                        self.ship_coordinates[1] += Space.grid_square_height
+                idx_shorthest_path_bfs += 1
+
+
             for row in range(self.grid_size):
                 for column in range(self.grid_size):
                     screen.blit(Space.background, (Space.grid_square_width * column,\
@@ -189,10 +227,12 @@ class Space(object):
                 my_search = Search(
                     self.grid_size, self.grid, [self.ship_coordinates[1] // Space.grid_square_height, self.ship_coordinates[0] // Space.grid_square_width], [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
                 path_bfs = my_search.bfs()
-                print(path_bfs)
-                print(my_search.get_path())
+                # print(path_bfs)
+                shorthest_path_bfs = my_search.get_path(
+                    [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
                 path_best_first_search = my_search.first_the_best()
-                print(my_search.get_path())
+                shorthest_path_best = my_search.get_path(
+                    [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
                 finished = True
         pygame.quit()
 

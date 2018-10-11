@@ -28,7 +28,18 @@ class Search(object):
         while not Q.empty():
             current_pos = Q.get()
             if self.parent[current_pos[0]][current_pos[1]]:
-                path.append(self.parent[current_pos[0]][current_pos[1]][1])
+                current_path = self.get_path(current_pos)
+                for i in current_path:
+                    path.append(i)
+                for i in range(len(current_path) - 1, -1, -1):
+                    if current_path[i] == 'U':
+                        path.append('D')
+                    if current_path[i] == 'D':
+                        path.append('U')
+                    if current_path[i] == 'R':
+                        path.append('L')
+                    if current_path[i] == 'L':
+                        path.append('R')
             if current_pos == self.goal:
                 break
             up_pos_coord = [current_pos[0]- 1, current_pos[1]]
@@ -58,11 +69,12 @@ class Search(object):
                 self.distance[left_pos_coord[0]][left_pos_coord[1]] = self.distance[current_pos[0]][current_pos[1]] + 1
                 self.parent[left_pos_coord[0]][left_pos_coord[1]] = ([current_pos[0], current_pos[1]], 'L')
                 Q.put(left_pos_coord)
+
             self.color[current_pos[0]][current_pos[1]] = 'BLACK'
         return path
-    def get_path(self):
+    def get_path(self, goal):
         path_stack = []
-        current_parent = self.parent[self.goal[0]][self.goal[1]]
+        current_parent = self.parent[goal[0]][goal[1]]
         while current_parent:
             path_stack.append(current_parent[1])
             current_parent = self.parent[current_parent[0][0]][current_parent[0][1]]
@@ -86,6 +98,19 @@ class Search(object):
         while not my_bests.empty():
             current_pos = my_bests.get()
             current_pos = current_pos[1]
+            if self.parent[current_pos[0]][current_pos[1]]:
+                current_path = self.get_path(current_pos)
+                for i in current_path:
+                    path.append(i)
+                for i in range(len(current_path) - 1, -1, -1):
+                    if current_path[i] == 'U':
+                        path.append('D')
+                    if current_path[i] == 'D':
+                        path.append('U')
+                    if current_path[i] == 'R':
+                        path.append('L')
+                    if current_path[i] == 'L':
+                        path.append('R')
             if current_pos == self.goal:
                 break
             up_pos_coord = [current_pos[0] - 1, current_pos[1]]
@@ -95,7 +120,6 @@ class Search(object):
                                                ] = self.distance[current_pos[0]][current_pos[1]] + 1
                 self.parent[up_pos_coord[0]][up_pos_coord[1]] = (
                     [current_pos[0], current_pos[1]], 'U')
-                path.append('U')
                 my_bests.put((self.manhattan_distance(up_pos_coord), up_pos_coord))
             right_pos_coord = [current_pos[0], current_pos[1] + 1]
             if self.is_valid(right_pos_coord) and\
@@ -105,7 +129,6 @@ class Search(object):
                                                   ] = self.distance[current_pos[0]][current_pos[1]] + 1
                 self.parent[right_pos_coord[0]][right_pos_coord[1]] = (
                     [current_pos[0], current_pos[1]], 'R')
-                path.append('R')
                 my_bests.put((self.manhattan_distance(right_pos_coord), right_pos_coord))
             down_pos_coord = [current_pos[0] + 1, current_pos[1]]
             if self.is_valid(down_pos_coord) and\
@@ -115,7 +138,6 @@ class Search(object):
                                                  ] = self.distance[current_pos[0]][current_pos[1]] + 1
                 self.parent[down_pos_coord[0]][down_pos_coord[1]] = (
                     [current_pos[0], current_pos[1]], 'D')
-                path.append('D')
                 my_bests.put((self.manhattan_distance(down_pos_coord), down_pos_coord))
             left_pos_coord = [current_pos[0], current_pos[1] - 1]
             if self.is_valid(left_pos_coord) and\
@@ -125,9 +147,9 @@ class Search(object):
                                                  ] = self.distance[current_pos[0]][current_pos[1]] + 1
                 self.parent[left_pos_coord[0]][left_pos_coord[1]] = (
                     [current_pos[0], current_pos[1]], 'L')
-                path.append('L')
                 my_bests.put((self.manhattan_distance(left_pos_coord), left_pos_coord))
             self.color[current_pos[0]][current_pos[1]] = 'BLACK'
+        return path
     def a_star(self):
         pass
         
