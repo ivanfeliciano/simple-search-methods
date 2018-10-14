@@ -1,4 +1,4 @@
-import queue
+# encoding: utf-8
 
 class SearchAlgorithm(object):
     """
@@ -59,7 +59,7 @@ class SearchAlgorithm(object):
             self.distance[up_square[0]][up_square[1]] =\
                 self.distance[current_square[0]][current_square[1]] + 1
             self.parent[up_square[0]][up_square[1]] = ([current_square[0], current_square[1]], 'U')
-            return True
+            return up_square
         return False
 
     def move_down(self, current_square):
@@ -81,7 +81,7 @@ class SearchAlgorithm(object):
                 self.distance[current_square[0]][current_square[1]] + 1
             self.parent[down_square[0]][down_square[1]] = (
                 [current_square[0], current_square[1]], 'D')
-            return True
+            return down_square
         return False
 
     def move_to_the_right(self, current_square):
@@ -103,7 +103,7 @@ class SearchAlgorithm(object):
                 self.distance[current_square[0]][current_square[1]] + 1
             self.parent[right_square[0]][right_square[1]] = (
                 [current_square[0], current_square[1]], 'R')
-            return True
+            return right_square
         return False
 
     def move_to_the_left(self, current_square):
@@ -124,8 +124,8 @@ class SearchAlgorithm(object):
             self.distance[left_square[0]][left_square[1]] =\
                 self.distance[current_square[0]][current_square[1]] + 1
             self.parent[left_square[0]][left_square[1]] = (
-                [current_square[0], current_square[1]], 'U')
-            return True
+                [current_square[0], current_square[1]], 'L')
+            return left_square
         return False
 
 
@@ -164,4 +164,4 @@ class SearchAlgorithm(object):
                 way_back.append('L')
             if direction == 'L':
                 way_back.append('R')
-
+        return way_back

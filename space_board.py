@@ -4,7 +4,9 @@ import time
 import pygame
 from pygame.locals import *
 
-from search_methods import Search
+from blind_methods import BFS, DFS
+from heuristic_methods import BestFS, HillClimbing
+
 
 class Space(object):
     grid_square_width = 50
@@ -224,15 +226,16 @@ class Space(object):
             clock.tick(60)
             pygame.display.flip()
             if self.ship_coordinates and self.goal_coordinates and not finished:
-                my_search = Search(
-                    self.grid_size, self.grid, [self.ship_coordinates[1] // Space.grid_square_height, self.ship_coordinates[0] // Space.grid_square_width], [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
-                path_bfs = my_search.bfs()
-                # print(path_bfs)
+                my_search = HillClimbing(
+                    self.grid, [self.ship_coordinates[1] // Space.grid_square_height, self.ship_coordinates[0] // Space.grid_square_width], [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
+                path_bfs = my_search.execute_search()
+                #print(path_bfs)
                 shorthest_path_bfs = my_search.get_path(
-                    [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
-                path_best_first_search = my_search.first_the_best()
-                shorthest_path_best = my_search.get_path(
-                    [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
+                      [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
+                print(shorthest_path_bfs)
+                # path_best_first_search = my_search.first_the_best()
+                # shorthest_path_best = my_search.get_path(
+                #     [self.goal_coordinates[1] // Space.grid_square_height, self.goal_coordinates[0] // Space.grid_square_width])
                 finished = True
         pygame.quit()
 
