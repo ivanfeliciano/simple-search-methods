@@ -1,4 +1,5 @@
 # encoding: utf-8
+from math import inf
 
 class SearchAlgorithm(object):
     """
@@ -23,7 +24,7 @@ class SearchAlgorithm(object):
             self.grid_size)] for j in range(self.grid_size)]
         self.parent = [[None for i in range(
             self.grid_size)] for j in range(self.grid_size)]
-        self.distance = [[10e100 for i in range(
+        self.distance = [[inf for i in range(
             self.grid_size)] for j in range(self.grid_size)]
         self.start = start
         self.goal = goal
