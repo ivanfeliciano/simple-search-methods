@@ -83,25 +83,32 @@ class DFS(SearchAlgorithm):
         if up_square:
             self.path.append('U')
             self.dfs_visit(up_square)
-            # if not self.done:
             self.path.append('D')
+            if self.done:
+                return
         down_square = self.move_down(current_square)
         if down_square:
             self.path.append('D')
             self.dfs_visit(down_square)
             # if not self.done:
             self.path.append('U')
+            if self.done:
+                return
         right_square = self.move_to_the_right(current_square)
         if right_square:
             self.path.append('R')
             self.dfs_visit(right_square)
             # if not self.done:
             self.path.append('L')
+            if self.done:
+                return
         left_square = self.move_to_the_left(current_square)
         if left_square:
             self.path.append('L')
             self.dfs_visit(left_square)
             # if not self.done:
             self.path.append('R')
+            if self.done:
+                return
 
         self.color[current_square[0]][current_square[1]] = 'BLACK'
