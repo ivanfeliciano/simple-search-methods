@@ -35,8 +35,6 @@ class BestFS(SearchAlgorithm):
             current_square = self.my_bests.get()
             current_square = current_square[1]
             if current_square == self.goal:
-                print("He llegado")
-                print(self.goal)
                 break
             if self.parent[current_square[0]][current_square[1]]:
                 current_path = self.get_path(current_square)
@@ -46,12 +44,12 @@ class BestFS(SearchAlgorithm):
             up_square = self.move_up(current_square)
             if up_square:
                 self.my_bests.put((manhattan_distance(up_square, self.goal), up_square))
-            right_square = self.move_to_the_right(current_square)
-            if right_square:
-                self.my_bests.put((manhattan_distance(right_square, self.goal), right_square))
             left_square = self.move_to_the_left(current_square)
             if left_square:
                 self.my_bests.put((manhattan_distance(left_square, self.goal), left_square))
+            right_square = self.move_to_the_right(current_square)
+            if right_square:
+                self.my_bests.put((manhattan_distance(right_square, self.goal), right_square))
             down_square = self.move_down(current_square)
             if down_square:
                 self.my_bests.put((manhattan_distance(down_square, self.goal), down_square))
@@ -93,13 +91,12 @@ class HillClimbing(SearchAlgorithm):
         self.time += 1
         self.color[current_square[0]][current_square[1]] = 'GRAY'
         up_square = self.move_up(current_square)
-        down_square = self.move_down(current_square)
-        right_square = self.move_to_the_right(current_square)
         left_square = self.move_to_the_left(current_square)
-        candidates = [up_square, down_square, right_square, left_square]
+        right_square = self.move_to_the_right(current_square)
+        down_square = self.move_down(current_square)
+        candidates = [up_square, left_square, right_square, down_square]
         candidates = [(manhattan_distance(candidates[idx], self.goal), idx)\
             for idx in range(4) if candidates[idx]]
-        
         for candidate in sorted(candidates):
             if self.done:
                 break
@@ -113,12 +110,12 @@ class HillClimbing(SearchAlgorithm):
                 self.dfs_visit(right_square)
                 # if not self.done:
                 self.path.append('L')
-            if candidate[1] == 3:
+            if candidate[1] == 1:
                 self.path.append('L')
                 self.dfs_visit(left_square)
                 # if not self.done:
                 self.path.append('R')
-            if candidate[1] == 1:
+            if candidate[1] == 3:
                 self.path.append('D')
                 self.dfs_visit(down_square)
                 # if not self.done:

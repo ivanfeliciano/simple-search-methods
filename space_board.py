@@ -24,13 +24,10 @@ COLORS = {
     "HillClimbing": (113, 201, 55), "A*": (255, 204, 0)
 }
 BEST_PATH_COLOR = (178, 255, 255)
-
-class SpaceShip(object):
-    def __init__(self, parameter_list):
-        pass
+LINE_WIDTH_NORMAL_PATH = 3 
+LINE_WIDTH_BEST_PATH = 2
 
 class Space(object):
-    line_width = 3
     def __init__(self, grid_size):
         self.grid_size = grid_size
         self.grid_square_width = SCREEN_WIDTH // self.grid_size
@@ -85,6 +82,8 @@ class Space(object):
         self.done = False
         self.current_color = BEST_PATH_COLOR
         self.no_he_dibujado_el_camino = False
+        self.init_sprite_for_mouse_over = None
+        self.planet_sprite_for_mouse_over = None
 
     def generate_configuration(self):
         """
@@ -137,23 +136,23 @@ class Space(object):
         self.ship_coordinates = self.initial_coordinates.copy()
     
 
-    def draw_line(self, direction_path, color, row, column):
+    def draw_line(self, direction_path, color, line_width, row, column):
         semipaths = direction_path[row][column]
         if semipaths[0]:
                     pygame.draw.line(self.screen, color, (self.grid_square_width * column + self.grid_square_width // 2,
                                     self.grid_square_height * row), (self.grid_square_width * column + self.grid_square_width // 2,
-                                                                        self.grid_square_height * row + self.grid_square_height // 2), Space.line_width)
+                                                                        self.grid_square_height * row + self.grid_square_height // 2), line_width)
         if semipaths[1]:
             pygame.draw.line(self.screen, color, (self.grid_square_width * column + self.grid_square_width // 2, self.grid_square_height * row + self.grid_square_height // 2),
-                                (self.grid_square_width * column + self.grid_square_width, self.grid_square_height * row + self.grid_square_height // 2), Space.line_width)
+                                (self.grid_square_width * column + self.grid_square_width, self.grid_square_height * row + self.grid_square_height // 2), line_width)
         if semipaths[2]:
             pygame.draw.line(self.screen, color, (self.grid_square_width * column + self.grid_square_width // 2,
                                                             self.grid_square_height * row + self.grid_square_height // 2), (self.grid_square_width * column + self.grid_square_width // 2,
-                                                                                                                            self.grid_square_height * row + self.grid_square_height), Space.line_width)
+                                                                                                                            self.grid_square_height * row + self.grid_square_height), line_width)
         if semipaths[3]:
             pygame.draw.line(self.screen, color, (self.grid_square_width * column,
                                                             self.grid_square_height * row + self.grid_square_height // 2), (self.grid_square_width * column + self.grid_square_width // 2,
-                                                                                                                            self.grid_square_height * row + self.grid_square_height // 2), Space.line_width)
+                                                                                                                            self.grid_square_height * row + self.grid_square_height // 2), line_width)
     def draw(self):
         for row in range(self.grid_size):
             for column in range(self.grid_size):
@@ -162,8 +161,15 @@ class Space(object):
                 if self.grid[row][column]:
                     self.screen.blit(self.meteors[self.grid[row][column]], (self.grid_square_width * column,
                                                                             self.grid_square_height * row))
-                self.draw_line(self.direction_path, self.current_color, row, column)
-                self.draw_line(self.direction_best_path, BEST_PATH_COLOR, row, column)
+                self.draw_line(self.direction_path, self.current_color,
+                               LINE_WIDTH_NORMAL_PATH, row, column)
+                self.draw_line(self.direction_best_path, BEST_PATH_COLOR, LINE_WIDTH_BEST_PATH, row, column)
+                if self.init_sprite_for_mouse_over and self.init_sprite_for_mouse_over[0] == row and self.init_sprite_for_mouse_over[1] == column:
+                    self.screen.blit(self.init_sprite, (self.grid_square_width * column,
+                                                                self.grid_square_height * row))
+                if self.planet_sprite_for_mouse_over and self.planet_sprite_for_mouse_over[0] == row and self.planet_sprite_for_mouse_over[1] == column:
+                    self.screen.blit(self.goal_sprite, (self.grid_square_width * column,
+                                                                self.grid_square_height * row))
     
     def run_search_method(self, method):
 
@@ -222,10 +228,26 @@ class Space(object):
                                                  self.grid_square_height * row]
                         self.initial_coordinates = [self.grid_square_width * column,
                                                     self.grid_square_height * row]
+                        self.init_sprite_for_mouse_over = None
                     elif self.ship_coordinates and not self.goal_coordinates and\
                             self.is_valid(row, column):
                         self.goal_coordinates = [
                             self.grid_square_width * column, self.grid_square_height * row]
+                        self.planet_sprite_for_mouse_over = None
+                    elif self.ship_coordinates and self.goal_coordinates and self.is_valid(row, column):
+                        self.grid[row][column] = randrange(8)
+                elif event.type == pygame.MOUSEMOTION and not self.ship_coordinates:
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0] // self.grid_square_width
+                    row = pos[1] // self.grid_square_height
+                    if self.is_valid(row, column):
+                        self.init_sprite_for_mouse_over = [row, column]
+                elif event.type == pygame.MOUSEMOTION and not self.goal_coordinates:
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0] // self.grid_square_width
+                    row = pos[1] // self.grid_square_height
+                    if self.is_valid(row, column):
+                        self.planet_sprite_for_mouse_over = [row, column]
 
     def clear(self):
         self.ship = self.init_sprite
@@ -250,16 +272,16 @@ class Space(object):
                     for j in range(self.grid_size)]
         self.initial_coordinates = None
         self.search_has_finished = False
-        self.generate_configuration()
+        # self.generate_configuration()
 
     def run(self):
         """
-        Inicializa pygame
+        Bucle principal
         """
         path = []
         shorthest_path = []
         method = None
-        self.generate_configuration()
+        # self.generate_configuration()
         reset_button = Button("", 0, SCREEN_WIDTH, SCREEN_WIDTH // 7,
                               SCREEN_HEIGHT - SCREEN_WIDTH, "./sprites/button_reset-all.png")
         restart_button = Button("", 1 * SCREEN_WIDTH // 7, SCREEN_WIDTH, SCREEN_WIDTH // 7,
@@ -302,9 +324,10 @@ class Space(object):
                 method = "A*"
             self.draw()
 
-            if path and shorthest_path and not self.no_he_dibujado_el_camino:
+            if path and not self.no_he_dibujado_el_camino:
                 self.generate_path_from_list(self.direction_path, path)
-                self.generate_path_from_list(self.direction_best_path, shorthest_path)
+                if shorthest_path:
+                    self.generate_path_from_list(self.direction_best_path, shorthest_path)
                 self.no_he_dibujado_el_camino = True
                 path = []
                 shorthest_path = []
@@ -314,7 +337,6 @@ class Space(object):
             if self.ship_coordinates and self.ship_coordinates != self.goal_coordinates:
                 self.screen.blit(self.ship, self.ship_coordinates)
             if self.ship_coordinates and self.goal_coordinates and not self.search_has_finished and method:
-                print(method)
                 self.current_color = COLORS[method]
                 self.ship = self.space_ships[method]
                 ans = self.run_search_method(method)
@@ -324,6 +346,7 @@ class Space(object):
                 self.search_has_finished = True
                 method = ""
                 
+            pygame.display.flip()
             pygame.display.update()
             self.clock.tick(self.fps)
 
@@ -332,7 +355,7 @@ def main():
     pygame.init()
     pygame.display.set_caption("Search methods IA")
     pygame.display.set_mode(SCREEN_SIZE)
-    Space(15).run()
+    Space(8).run()
     pygame.quit()
 
     
