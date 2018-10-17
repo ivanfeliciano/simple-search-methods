@@ -1,6 +1,7 @@
 # encoding: utf-8
 from random import randrange, seed
 import time
+import argparse
 import pygame
 from pygame.locals import *
 
@@ -352,10 +353,17 @@ class Space(object):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='A simple app for showing some simple search methods.')
+    parser.add_argument("--n", help="size of the grid")
+    args = parser.parse_args()
     pygame.init()
     pygame.display.set_caption("Search methods IA")
     pygame.display.set_mode(SCREEN_SIZE)
-    Space(8).run()
+    if args.n and 2 < int(args.n) <= 50:
+        Space(int(args.n)).run()
+    else:
+        Space(10).run()
     pygame.quit()
 
     
